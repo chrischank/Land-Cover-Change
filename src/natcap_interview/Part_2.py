@@ -1,7 +1,7 @@
 ##############################
 #Part 2: LCC Batch Processing#
 #Maintainer: Christopher Chan#
-#Version: 0.1.3              #
+#Version: 0.1.4              #
 #Date: 2025-02-14            #
 ##############################
 
@@ -199,6 +199,7 @@ def change_detection(raster_dict: dict) -> None:
             def _LCC_str_ndarray(LC1: np.ndarray, LC2: np.ndarray) -> np.ndarray:
                 temp_array = np.char.add(LC1.astype(str), ":")
                 return np.char.add(temp_array, LC2.astype(str))
+            
             LCC2020_2021_str = _LCC_str_ndarray(padded_images["2020"], padded_images["2021"])
             LCC2021_2022_str = _LCC_str_ndarray(padded_images["2021"], padded_images["2022"])
 
@@ -298,8 +299,7 @@ def plot_LCC_area(id_key: str, result_df: pd.DataFrame) -> None:
     
     # Set x-axis labels correctly
     plt.xticks(range(len(cols_to_plot)), ["Land Cover 2020", "Land Cover 2021", "Land Cover 2022"], rotation=45, ha="right")
-    
-    plt.ylabel("m2")
+    plt.ylabel("Area (m\u00B2)")
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
     plt.title(f"Land Cover 2020-2022 for {id_key}")
     plt.tight_layout()
@@ -318,10 +318,10 @@ def plot_LCC_area(id_key: str, result_df: pd.DataFrame) -> None:
     # Create the stackplot
     plt.figure(figsize=(12, 8))
     plt.stackplot(range(len(cols_to_plot)), *stack_data.values(), labels=stack_data.keys())
-    plt.xticks(range(len(cols_to_plot)), ["Land Cover 2020", "Land Cover 2021", "Land Cover 2022"], rotation=45)
+    plt.xticks(range(len(cols_to_plot)), ["Land Cover 2020", "Land Cover 2021", "Land Cover 2022"], rotation=45, ha="right")
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
     plt.title(f'Stackplot of Land Cover for {id_key}')
-    plt.ylabel('m2')
+    plt.ylabel('Area (m\u00B2)')
     plt.tight_layout()
     plt.savefig(f'{docs_path}/Part_2/LCC_area_plots/{id_key}LCC_Stackplot.png')
     plt.close()
@@ -341,8 +341,67 @@ def main():
         id_key = f"id_{id_num}"
         
         result_df = pd.read_csv(df_path, sep=',', na_values=[''], keep_default_na=True)
-        
         plot_LCC_area(id_key, result_df)
+
+    # Compute statistics for client
+    all_df = glob(f'{data_model_output}/Part_2/*.csv')
+    all_df_ls = [pd.read_csv(file) for file in all_df]
+    concat_df = pd.concat(all_df_ls)
+    final_df = concat_df.groupby("LCC", as_index=False).sum(numeric_only=True)
+
+    # Remap LCC to cover_class
+    with open(f'{data_raw}/vector/LC_classes.json', encoding='utf-8-sig') as js:
+        class_json = json.load(js)
+        class_dict = class_json['classes']
+
+    def map_cover_class(value, class_dict):
+        # Check if the value is in the dictionary
+        if value in class_dict:
+            return class_dict[value]
+        # Check for combined values like '0:0' or 'NaN:NaN'
+        elif ':' in value:
+            parts = value.split(':')
+            # Map each part and join them with a separator
+            return ':'.join(class_dict.get(part, 'Unknown') for part in parts)
+        else:
+            return 'Unknown'
+    
+    final_df['cover_class'] = final_df['LCC'].apply(lambda x: map_cover_class(x, class_dict))
+
+    out_dir = Path(f'{data_model_output}/Part_2/Concat')
+    out_dir.mkdir(parents=True, exist_ok=True)
+    final_df.to_csv(f'{data_model_output}/Part_2/Concat/final_df.csv', index=False)
+    describe_df = final_df.describe()
+    describe_df.to_csv(f'{data_model_output}/Part_2/Concat/final_df_describe.csv', index=True)
+
+    # Stackplot output for combined dataframe
+    valid_cover_classes = list(class_dict.values())
+    final_df_clean = final_df[final_df["cover_class"].isin(valid_cover_classes)].drop(0, axis=0)
+
+    cols_to_plot = ["LC2020_m2", "LC2021_m2", "LC2022_m2"]
+    stack_data = {}
+
+    out_dir = Path(f'{docs_path}/Part_2/Concat')
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    for cover_class in final_df_clean['cover_class'].unique():
+        # Extract values for each cover_class and ensure NaNs are replaced with 0
+        class_data = final_df_clean[final_df_clean['cover_class'] == cover_class][cols_to_plot].fillna(0).sum(axis=0)
+        stack_data[cover_class] = class_data.values
+
+    # Prepare x-axis labels
+    x_labels = cols_to_plot
+
+    # Create the stackplot
+    plt.figure(figsize=(12, 8))
+    plt.stackplot(x_labels, *stack_data.values(), labels=stack_data.keys())
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    plt.title('Stackplot of Combined Land Cover')
+    plt.ylabel('Area (m\u00B2)')
+    plt.xticks(range(len(cols_to_plot)), ["Land Cover 2020", "Land Cover 2021", "Land Cover 2022"], rotation=45, ha="right")
+    plt.tight_layout()
+    plt.savefig(f'{docs_path}/Part_2/Concat/LCC_Stackplot.png')
+    plt.show()
 
 if __name__ == "__main__":
     main()
