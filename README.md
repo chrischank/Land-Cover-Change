@@ -9,11 +9,10 @@ This is an interview assignment for NatCap Senior Scientist. The project has bee
 Some key features and folders to note:
 
 • Jupyter notebooks that demonstrate Part 1 (LCC analysis on a single area) and python script for Part 2 (batch processing).  
-• A well-organized data folder structure adhering to the Kedro "Data Engineering Convention."  
+• Data folder structure adhering to the Kedro "Data Engineering Convention."  
 • Configuration options for local and base settings.  
-• Documentation set up with Sphinx and examples for advanced usage.  
 
-This README provides detailed instructions on how to get started, install dependencies, run Kedro pipelines, and work with notebooks.
+This README provides detailed instructions on how to get started, install dependencies, and work with notebooks.
 
 ---
 
@@ -29,6 +28,7 @@ A brief overview of the file/folder organization:
   – <strong>01_raw/</strong>: Raw input data (e.g., raster files).  
   – <strong>02_intermediate/</strong>: Cleaned/intermediately processed data.  
   – <strong>07_model_output/</strong>: Model or analysis outputs ready for further inspection.  
+  – <strong>07_model_output/Part_2/Concat</strong>: Final data output for concatenated results for all sites.
   – Other data-layer folders exist but are not used in the current iteration (e.g., 03_primary, 04_feature, etc.).  
 
 • <strong>docs/</strong>  
@@ -42,13 +42,8 @@ A brief overview of the file/folder organization:
   – <strong>natcap_interview/</strong>: Main Python source code for this Kedro project.  
     – <code>__init__.py</code>: Defines the package version.  
     – <code>__main__.py</code>: Makes the package runnable with <code>python -m natcap_interview</code>.  
-    – <code>settings.py</code>: Project-wide settings for Kedro (e.g., config loader class).  
     – <code>Part_2.py</code>: Demonstrates a batch-processing approach to land cover change.  
-  – <strong>pipelines/</strong>: Where Kedro pipelines can be organized.  
   – <strong>pipeline_registry.py</strong>: A registry function that finds and combines all pipelines.  
-
-• <strong>tests/</strong>  
-  – Example tests using <code>pytest</code> for validating the functionality of Kedro runs and scripts.
 
 ---
 
@@ -75,7 +70,7 @@ uv sync --frozen
 
 ## Additional Notes on Land Cover Change (LCC) Notebooks
 
-• <strong>Part1_LCC.ipynb</strong>: Demonstrates how to load raster data (land cover years 2020, 2021, 2022), clip to an area of interest (AOI), resample if needed, and compute spectral or categorical changes through time.  
+• <strong>Part1_LCC.ipynb</strong>: Demonstrates how to load raster data (land cover years 2020, 2021, 2022), clip to an area of interest (AOI), resample if needed (not working), and compute categorical changes through time.  
 • <strong>Part_2.py</strong> / <strong>Part_2</strong> scripts: Illustrates a batch approach for multiple AOIs or multiple sets of time-series raster data.
 
-Each notebook writes logs, plots, or output CSVs to designated folders like <code>docs/Part_1/</</code> and <code>docs/Part_2</code> or <code>data/</code> subfolders, as configured within the scripts.
+Only Part_2.py writes logs, plots, or output CSVs to designated folders <code>docs/Part_2</code> or <code>data/</code> subfolders, as configured within the scripts.
