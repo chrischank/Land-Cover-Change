@@ -4,98 +4,78 @@
 
 ## Overview
 
-This is your new Kedro project with Kedro-Viz setup, which was generated using `kedro 0.19.11`.
+This is an interview assignment for NatCap Senior Scientist. The project has been generated using Kedro (version 0.19.11) and has Kedro-Viz set up by default.
 
-Take a look at the [Kedro documentation](https://docs.kedro.org) to get started.
+Some key features and folders to note:
 
-## Rules and guidelines
+• Jupyter notebooks that demonstrate Part 1 (LCC analysis on a single area) and python script for Part 2 (batch processing).  
+• A well-organized data folder structure adhering to the Kedro "Data Engineering Convention."  
+• Configuration options for local and base settings.  
+• Documentation set up with Sphinx and examples for advanced usage.  
 
-In order to get the best out of the template:
+This README provides detailed instructions on how to get started, install dependencies, run Kedro pipelines, and work with notebooks.
 
-* Don't remove any lines from the `.gitignore` file we provide
-* Make sure your results can be reproduced by following a [data engineering convention](https://docs.kedro.org/en/stable/faq/faq.html#what-is-data-engineering-convention)
-* Don't commit data to your repository
-* Don't commit any credentials or your local configuration to your repository. Keep all your credentials and local configuration in `conf/local/`
+---
 
-## How to install dependencies
+## Project Structure
 
-Declare any dependencies in `requirements.txt` for `pip` installation.
+A brief overview of the file/folder organization:
 
-To install them, run:
+• <strong>conf/</strong>  
+  – <strong>base/</strong>: Base configurations (e.g., catalog.yml, parameters.yml).  
+  – <strong>local/</strong>: Local configurations for credentials and user-specific settings (excluded from version control).  
+
+• <strong>data/</strong>  
+  – <strong>01_raw/</strong>: Raw input data (e.g., raster files).  
+  – <strong>02_intermediate/</strong>: Cleaned/intermediately processed data.  
+  – <strong>07_model_output/</strong>: Model or analysis outputs ready for further inspection.  
+  – Other data-layer folders exist but are not used in the current iteration (e.g., 03_primary, 04_feature, etc.).  
+
+• <strong>docs/</strong>  
+  – Sphinx documentation configuration is stored here under <code>docs/source/</code>.  
+  – Additional generated docs, figures, or logs may also be written here by scripts and notebooks (e.g., <code>Part_1/</code> and <code>Part_2/</code> directories).  
+
+• <strong>notebooks/</strong>  
+  – Contains Jupyter notebooks demonstrating specific analyses such as "Part1_LCC.ipynb," which shows land cover change workflows using raster and vector data.  
+
+• <strong>src/</strong>  
+  – <strong>natcap_interview/</strong>: Main Python source code for this Kedro project.  
+    – <code>__init__.py</code>: Defines the package version.  
+    – <code>__main__.py</code>: Makes the package runnable with <code>python -m natcap_interview</code>.  
+    – <code>settings.py</code>: Project-wide settings for Kedro (e.g., config loader class).  
+    – <code>Part_2.py</code>: Demonstrates a batch-processing approach to land cover change.  
+  – <strong>pipelines/</strong>: Where Kedro pipelines can be organized.  
+  – <strong>pipeline_registry.py</strong>: A registry function that finds and combines all pipelines.  
+
+• <strong>tests/</strong>  
+  – Example tests using <code>pytest</code> for validating the functionality of Kedro runs and scripts.
+
+---
+
+## How to Install Dependencies
+
+Project requirements are stored in:
+
+• <code>requirements.txt</code> (for pip installs), and  
+• <code>pyproject.toml</code> (for an overview of dependencies in a more modern format).
+
+To install using <code>requirements.txt</code>, simply run:
 
 ```
 pip install -r requirements.txt
 ```
 
-## How to run your Kedro pipeline
-
-You can run your Kedro project with:
+Or install using UV, which is what I used for the virtual environment:
 
 ```
-kedro run
+uv sync --frozen
 ```
 
-## How to test your Kedro project
+---
 
-Have a look at the files `src/tests/test_run.py` and `src/tests/pipelines/data_science/test_pipeline.py` for instructions on how to write your tests. Run the tests as follows:
+## Additional Notes on Land Cover Change (LCC) Notebooks
 
-```
-pytest
-```
+• <strong>Part1_LCC.ipynb</strong>: Demonstrates how to load raster data (land cover years 2020, 2021, 2022), clip to an area of interest (AOI), resample if needed, and compute spectral or categorical changes through time.  
+• <strong>Part_2.py</strong> / <strong>Part_2</strong> scripts: Illustrates a batch approach for multiple AOIs or multiple sets of time-series raster data.
 
-To configure the coverage threshold, look at the `.coveragerc` file.
-
-## Project dependencies
-
-To see and update the dependency requirements for your project use `requirements.txt`. Install the project requirements with `pip install -r requirements.txt`.
-
-[Further information about project dependencies](https://docs.kedro.org/en/stable/kedro_project_setup/dependencies.html#project-specific-dependencies)
-
-## How to work with Kedro and notebooks
-
-> Note: Using `kedro jupyter` or `kedro ipython` to run your notebook provides these variables in scope: `catalog`, `context`, `pipelines` and `session`.
->
-> Jupyter, JupyterLab, and IPython are already included in the project requirements by default, so once you have run `pip install -r requirements.txt` you will not need to take any extra steps before you use them.
-
-### Jupyter
-To use Jupyter notebooks in your Kedro project, you need to install Jupyter:
-
-```
-pip install jupyter
-```
-
-After installing Jupyter, you can start a local notebook server:
-
-```
-kedro jupyter notebook
-```
-
-### JupyterLab
-To use JupyterLab, you need to install it:
-
-```
-pip install jupyterlab
-```
-
-You can also start JupyterLab:
-
-```
-kedro jupyter lab
-```
-
-### IPython
-And if you want to run an IPython session:
-
-```
-kedro ipython
-```
-
-### How to ignore notebook output cells in `git`
-To automatically strip out all output cell contents before committing to `git`, you can use tools like [`nbstripout`](https://github.com/kynan/nbstripout). For example, you can add a hook in `.git/config` with `nbstripout --install`. This will run `nbstripout` before anything is committed to `git`.
-
-> *Note:* Your output cells will be retained locally.
-
-[Further information about using notebooks for experiments within Kedro projects](https://docs.kedro.org/en/develop/notebooks_and_ipython/kedro_and_notebooks.html).
-## Package your Kedro project
-
-[Further information about building project documentation and packaging your project](https://docs.kedro.org/en/stable/tutorial/package_a_project.html).
+Each notebook writes logs, plots, or output CSVs to designated folders like <code>docs/Part_1/</</code> and <code>docs/Part_2</code> or <code>data/</code> subfolders, as configured within the scripts.
