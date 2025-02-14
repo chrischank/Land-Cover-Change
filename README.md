@@ -69,7 +69,10 @@ uv sync --frozen
 ---
 ## Running the analysis
 **Part_1: run the <code>Part1_LCC.ipynb</code> in /notebooks**\
-**Part_2: run the code using <code>uv run src/natcap_interview/Part_2.py</code>**
+**Part_2: run the code using <code>uv run**
+```
+src/natcap_interview/Part_2.py</code>
+```
 
 ---
 
