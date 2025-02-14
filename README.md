@@ -32,8 +32,7 @@ A brief overview of the file/folder organization:
   – Other data-layer folders exist but are not used in the current iteration (e.g., 03_primary, 04_feature, etc.).  
 
 • <strong>docs/</strong>  
-  – Sphinx documentation configuration is stored here under <code>docs/source/</code>.  
-  – Additional generated docs, figures, or logs may also be written here by scripts and notebooks (e.g., <code>Part_1/</code> and <code>Part_2/</code> directories).  
+  – Generated figures, or logs may also be written here by scripts and notebooks (e.g., <code>Part_1/</code> and <code>Part_2/</code> directories).  
 
 • <strong>notebooks/</strong>  
   – Contains Jupyter notebooks demonstrating specific analyses such as "Part1_LCC.ipynb," which shows land cover change workflows using raster and vector data.  
@@ -43,7 +42,6 @@ A brief overview of the file/folder organization:
     – <code>__init__.py</code>: Defines the package version.  
     – <code>__main__.py</code>: Makes the package runnable with <code>python -m natcap_interview</code>.  
     – <code>Part_2.py</code>: Demonstrates a batch-processing approach to land cover change.  
-  – <strong>pipeline_registry.py</strong>: A registry function that finds and combines all pipelines.  
 
 ---
 
