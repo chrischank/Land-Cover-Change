@@ -65,9 +65,10 @@ uv sync --frozen
 ```
 
 ---
+
 ## Running the analysis
-**Part_1: run the <code>Part1_LCC.ipynb</code> in /notebooks**\
-**Part_2: run the code using**
+**Part_1: run the [Part1_LCC.ipynb](./notebooks/Part1_LCC.ipynb) in /notebooks**\
+**Part_2: run the [Part_2.py](./src/natcap_interview/Part_2.py) using**
 
 ```
 uv run src/natcap_interview/Part_2.py
@@ -75,7 +76,24 @@ uv run src/natcap_interview/Part_2.py
 
 ---
 
-## Additional Notes on Land Cover Change (LCC) Notebooks
+## Results
+
+### Part 1
+
+id_1
+![id_1_timeseries](./docs/Part_2/plots/id_1_timeseries.png)
+![id1_LCC](./docs/Part_1/id1_LCC.png)
+![id_1LCC_Scatterplot](./docs/Part_2/LCC_area_plots/id_1LCC_Scatterplot.png)
+![id_1LCC_Stackplot](./docs/Part_2/LCC_area_plots/id_1LCC_Stackplot.png)
+
+### Part 2
+
+Total Land Cover through time
+![LCC_stackplot](./docs/Part_2/Concat/LCC_Stackplot.png)
+
+---
+
+## Additional Notes on Land Cover Change (LCC) Notebooks and codes
 
 • <strong>Part1_LCC.ipynb</strong>: Demonstrates how to load raster data (land cover years 2020, 2021, 2022), clip to an area of interest (AOI), resample if needed (not working), and compute categorical changes through time.  
 • <strong>Part_2.py</strong> / <strong>Part_2</strong> scripts: Illustrates a batch approach for multiple AOIs or multiple sets of time-series raster data.
