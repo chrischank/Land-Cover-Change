@@ -1,7 +1,7 @@
 ##############################
 #Part 2: LCC Batch Processing#
 #Maintainer: Christopher Chan#
-#Version: 0.1.6              #
+#Version: 0.1.7              #
 #Date: 2025-02-14            #
 ##############################
 
@@ -18,6 +18,7 @@ import numpy as np
 import pandas as pd
 import rasterio as rio
 import seaborn as sns
+from matplotlib.colors import BoundaryNorm, ListedColormap
 from osgeo import gdal
 from rasterio.mask import mask
 
@@ -41,6 +42,14 @@ logging.basicConfig(
         logging.StreamHandler()  # This will print to console too
     ]
 )
+
+# Define color palette
+tol_colors = [
+    "#332288", "#FFFFFF", "#44AA99", "#117733", "#999933", "#DDCC77",
+    "#CC6677", "#882255", "#AA4499", "#DDDDDD", "#E69F00", "#56B4E9",
+    "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#999999",
+    "#66C2A5", "#FC8D62", "#8DA0CB", "#E76BF3", "#FFD92F", "#F81D50"
+    ]
 
 # load data
 def load_raster(raster_path: Path) -> List[str]:
@@ -147,20 +156,36 @@ def LC_raster_plot(raster_dict: dict) -> None:
 
         # Create figure with 3 subplots
         fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+
         fig.suptitle(f"Land Cover for {id_key}")
+
+        arr = np.arange(0, 12)
+        arr_filtered = arr[arr != 10]
+
+        cmap = ListedColormap([tol_colors[i] for i in arr_filtered])
+
+        # Define boundaries so that the highest category (11) is fully covered
+        boundaries = [cat - 0.5 for cat in arr_filtered]
+        boundaries.append(arr_filtered[-1] + 0.5)
+
+        norm = BoundaryNorm(boundaries=boundaries, ncolors=len(arr_filtered))
 
         # Plot each year
         for idx, (year, img) in enumerate(images.items()):
             if img is not None:
-                im = axes[idx].imshow(img)
+                im = axes[idx].imshow(img, cmap=cmap, norm=norm)
                 axes[idx].set_title(f"Year {year}")
 
-                # Add colorbar
-                arr = np.arange(0, 12)
-                fig.colorbar(im, ax=axes[idx], orientation='horizontal',
-                           fraction=0.09, pad=0.09, ticks=arr,
-                           boundaries=arr)
+                cbar = fig.colorbar(
+                    im, ax=axes[idx],
+                    orientation='horizontal',
+                    fraction=0.09,
+                    pad=0.09,
+                    ticks=arr_filtered,
+                    boundaries=boundaries
+                    )
 
+        plt.tight_layout()
         plt.savefig(f"{docs_path}/Part_2/plots/{id_key}_timeseries.png")
         plt.close()  # Close the figure to free memory
 
@@ -217,15 +242,46 @@ def change_detection(raster_dict: dict) -> None:
             LCC2021_2022_str = _LCC_str_ndarray(padded_images["2021"], padded_images["2022"])
 
             # Plot
-            fig, ax = plt.subplots(1, 2, figsize=(10, 5))
+            unique_values = np.unique(
+                np.concatenate([
+                    np.unique(LCC2020_2021),
+                    np.unique(LCC2021_2022)
+                ])
+            )
+
+            n_classes = len(unique_values)
+            boundaries = np.arange(-0.5, n_classes + 0.5, 1)
+            norm = BoundaryNorm(boundaries, ncolors=n_classes)
+            cmap_normalised = ListedColormap(tol_colors[:n_classes])
+
+            val_to_idx = {val: idx for idx, val in enumerate(unique_values)}
+
+            mapped_2020_2021 = np.vectorize(val_to_idx.get)(LCC2020_2021)
+            mapped_2021_2022 = np.vectorize(val_to_idx.get)(LCC2021_2022)
+
+            fig, ax = plt.subplots(1, 2, figsize=(15, 10))
             fig.suptitle(f"Land Cover Change for {id_key}")
 
-            LCCPlot_2020_2021 = ax[0].imshow(LCC2020_2021)
-            LCCPlot_2021_2022 = ax[1].imshow(LCC2021_2022)
+            for i, (data, title) in enumerate([
+                (mapped_2020_2021, 'LCC 2020-2021'),
+                (mapped_2021_2022, 'LCC 2021-2022')
+            ]):
+                im = ax[i].imshow(data, cmap=cmap_normalised, norm=norm)
+                ax[i].set_title(title)
 
-            ax[0].set_title("2020-2021")
-            ax[1].set_title("2021-2022")
+                tick_positions = np.arange(n_classes)
+                tick_labels = [str(val) for val in unique_values]
 
+                cbar = fig.colorbar(
+                    im, ax=ax[i], orientation='horizontal',
+                    fraction=0.09, pad=0.09,
+                    ticks=tick_positions
+                )
+
+                cbar.set_ticklabels(tick_labels)
+                cbar.ax.tick_params(rotation=45)
+
+            plt.tight_layout()
             plt.savefig(f"{docs_path}/Part_2/CD_plots/{id_key}_LCC.png")
             plt.close()
 
@@ -421,7 +477,7 @@ def main():
     plt.xticks(range(len(cols_to_plot)), ["Land Cover 2020", "Land Cover 2021", "Land Cover 2022"], rotation=45, ha="right")
     plt.tight_layout()
     plt.savefig(f'{docs_path}/Part_2/Concat/LCC_Stackplot.png')
-    plt.show()
+    plt.close()
 
 if __name__ == "__main__":
     main()
