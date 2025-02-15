@@ -88,6 +88,12 @@ id_1
 
 ### Part 2
 
+id_8
+![id_8_timeseries](./docs/Part_2/plots/id_8_timeseries.png)
+![id_8_LCC](./docs/Part_2/CD_plots/id_8_LCC.png)
+![id_8LCC_Scatterplot](./docs/Part_2/LCC_area_plots/id_8LCC_Scatterplot.png)
+![id_8LCC_Stackplot](./docs/Part_2/LCC_area_plots/id_8LCC_Stackplot.png)
+
 Total Land Cover through time
 ![LCC_stackplot](./docs/Part_2/Concat/LCC_Stackplot.png)
 
