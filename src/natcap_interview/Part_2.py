@@ -1,7 +1,7 @@
 ##############################
 #Part 2: LCC Batch Processing#
 #Maintainer: Christopher Chan#
-#Version: 0.1.4              #
+#Version: 0.1.5              #
 #Date: 2025-02-14            #
 ##############################
 
@@ -28,7 +28,7 @@ from glob import glob
 
 
 # path setup
-BASE_PATH = Path(os.getcwd())
+BASE_PATH = Path(__file__).parent
 data_raw = (BASE_PATH/'../../data/01_raw').resolve()
 data_intermediate = (BASE_PATH/'../../data/02_intermediate').resolve()
 data_model_output = (BASE_PATH/'../../data/07_model_output').resolve()
@@ -50,6 +50,9 @@ logging.basicConfig(
 
 # load data
 def load_raster(raster_path: Path) -> List[str]:
+    '''
+    Load raster into gdal to get paths and info
+    '''
     raster_list = []
     for path in glob(f'{raster_path}/*.tif'):
             ds = gdal.Open(str(path))
@@ -58,6 +61,9 @@ def load_raster(raster_path: Path) -> List[str]:
     return raster_list
 
 def load_vector(vector_path: Path) -> List[tuple[gpd.GeoDataFrame, str]]:
+    '''
+    Load vector into a list of tuples
+    '''
     vector_list = []
     for path in glob(f'{vector_path}/*.geojson'):
         ds = gpd.read_file(path)
@@ -66,6 +72,10 @@ def load_vector(vector_path: Path) -> List[tuple[gpd.GeoDataFrame, str]]:
     return vector_list
 
 def batch_clip(raster_list: List[str], vector_list: List[tuple[gpd.GeoDataFrame, str]]) -> dict:
+    '''
+    Batch processing for vector reproject and clipping,
+    output as dict for east retrieval
+    '''
     clip_rasterDICT = {}
 
     # Create output directory if it doesn't exist
@@ -123,6 +133,9 @@ def batch_clip(raster_list: List[str], vector_list: List[tuple[gpd.GeoDataFrame,
     return clip_rasterDICT
 
 def LC_raster_plot(raster_dict: dict) -> None:
+    '''
+    Plot Land Cover
+    '''
     # Create output directory if it doesn't exist
     out_dir = Path(f'{docs_path}/Part_2/plots')
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -158,6 +171,12 @@ def LC_raster_plot(raster_dict: dict) -> None:
         plt.close()  # Close the figure to free memory
 
 def change_detection(raster_dict: dict) -> None:
+    '''
+    Massive function to calculate Change Detection
+    Padding detection to max shape in set
+    np.char for CD
+    write and plot output
+    '''
     out_dir = Path(f'{docs_path}/Part_2/CD_plots')
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -234,6 +253,10 @@ def change_detection(raster_dict: dict) -> None:
             result_df_LCC = pd.merge(result_df_LCC, LCC2021_2022_df, on='LCC', how='outer')
             
             def _map_cover_class(value, class_dict):
+                '''
+                Nested function map cover class from json
+                originally README.txt
+                '''
                 # Check if the value is in the dictionary
                 if value in class_dict:
                     return class_dict[value]
@@ -266,6 +289,9 @@ def change_detection(raster_dict: dict) -> None:
             continue
 
 def plot_LCC_area(id_key: str, result_df: pd.DataFrame) -> None:
+    '''
+    Scatterplot and Stackplot iteratively
+    '''
     # Create output directory if it doesn't exist
     out_dir = Path(f'{docs_path}/Part_2/LCC_area_plots')
     out_dir.mkdir(parents=True, exist_ok=True)
