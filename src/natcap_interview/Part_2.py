@@ -1,31 +1,25 @@
 ##############################
 #Part 2: LCC Batch Processing#
 #Maintainer: Christopher Chan#
-#Version: 0.1.5              #
+#Version: 0.1.6              #
 #Date: 2025-02-14            #
 ##############################
 
-import os
 import json
 import logging
 from datetime import datetime
+from glob import glob
+from pathlib import Path
+from typing import List
 
+import geopandas as gpd
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import rasterio as rio
-import geopandas as gpd
-import matplotlib as mpl
-import matplotlib.pyplot as plt
 import seaborn as sns
-
-from pathlib import Path
-from typing import List
-from PIL import Image
 from osgeo import gdal
 from rasterio.mask import mask
-from rasterio.enums import Resampling
-from glob import glob
-
 
 # path setup
 BASE_PATH = Path(__file__).parent
@@ -81,9 +75,9 @@ def batch_clip(raster_list: List[str], vector_list: List[tuple[gpd.GeoDataFrame,
     # Create output directory if it doesn't exist
     out_dir = Path(f'{data_intermediate}/raster/Part_2')
     out_dir.mkdir(parents=True, exist_ok=True)
-    
+
     print(f"Processing {len(raster_list)} rasters with {len(vector_list)} vector files")
-    
+
     for raster in raster_list:
         print(f"Processing raster: {raster}")
         year = raster.split('_')[2].split('.')[0]
@@ -96,7 +90,7 @@ def batch_clip(raster_list: List[str], vector_list: List[tuple[gpd.GeoDataFrame,
                 gdf_32630 = gdf.to_crs(epsg=32630)
             else:
                 gdf_32630 = gdf
-                 
+
             id = vector_path
 
             with rio.open(raster) as src:
@@ -121,7 +115,7 @@ def batch_clip(raster_list: List[str], vector_list: List[tuple[gpd.GeoDataFrame,
                     # Initialize dictionary entry for this ID if it doesn't exist
                     if id not in clip_rasterDICT:
                         clip_rasterDICT[id] = {}
-                    
+
                     # Add the year and raster to the ID's dictionary
                     clip_rasterDICT[id][year] = {"raster": clipped_image}
 
@@ -144,29 +138,29 @@ def LC_raster_plot(raster_dict: dict) -> None:
         id_key = f"id_{i}"
         if id_key not in raster_dict:
             continue
-            
+
         images = {"2020": None, "2021": None, "2022": None}
-        
+
         # Collect all images for this ID
         for year in raster_dict[id_key]:
             images[year] = raster_dict[id_key][year]["raster"][0]  # Get first band
-        
+
         # Create figure with 3 subplots
         fig, axes = plt.subplots(1, 3, figsize=(15, 5))
         fig.suptitle(f"Land Cover for {id_key}")
-        
+
         # Plot each year
         for idx, (year, img) in enumerate(images.items()):
             if img is not None:
                 im = axes[idx].imshow(img)
                 axes[idx].set_title(f"Year {year}")
-                
+
                 # Add colorbar
                 arr = np.arange(0, 12)
-                fig.colorbar(im, ax=axes[idx], orientation='horizontal', 
+                fig.colorbar(im, ax=axes[idx], orientation='horizontal',
                            fraction=0.09, pad=0.09, ticks=arr,
                            boundaries=arr)
-        
+
         plt.savefig(f"{docs_path}/Part_2/plots/{id_key}_timeseries.png")
         plt.close()  # Close the figure to free memory
 
@@ -188,7 +182,7 @@ def change_detection(raster_dict: dict) -> None:
         if id_key not in raster_dict:
             continue
         images = {"2020": None, "2021": None, "2022": None}
-        
+
         # Collect all images for this ID
         for year in raster_dict[id_key]:
             images[year] = raster_dict[id_key][year]["raster"][0]
@@ -214,18 +208,18 @@ def change_detection(raster_dict: dict) -> None:
             # Create change detection arrays
             LCC2020_2021 = np.char.add(padded_images["2020"].astype(str), padded_images["2021"].astype(str)).astype(np.float16)
             LCC2021_2022 = np.char.add(padded_images["2021"].astype(str), padded_images["2022"].astype(str)).astype(np.float16)
- 
+
             def _LCC_str_ndarray(LC1: np.ndarray, LC2: np.ndarray) -> np.ndarray:
                 temp_array = np.char.add(LC1.astype(str), ":")
                 return np.char.add(temp_array, LC2.astype(str))
-            
+
             LCC2020_2021_str = _LCC_str_ndarray(padded_images["2020"], padded_images["2021"])
             LCC2021_2022_str = _LCC_str_ndarray(padded_images["2021"], padded_images["2022"])
 
             # Plot
             fig, ax = plt.subplots(1, 2, figsize=(10, 5))
             fig.suptitle(f"Land Cover Change for {id_key}")
-        
+
             LCCPlot_2020_2021 = ax[0].imshow(LCC2020_2021)
             LCCPlot_2021_2022 = ax[1].imshow(LCC2021_2022)
 
@@ -251,7 +245,7 @@ def change_detection(raster_dict: dict) -> None:
 
             result_df_LCC = pd.merge(result_df, LCC2020_2021_df, on='LCC', how='outer')
             result_df_LCC = pd.merge(result_df_LCC, LCC2021_2022_df, on='LCC', how='outer')
-            
+
             def _map_cover_class(value, class_dict):
                 '''
                 Nested function map cover class from json
@@ -283,7 +277,7 @@ def change_detection(raster_dict: dict) -> None:
             result_df_LCC["LCC2020_2021_m2"] = result_df_LCC["LCC 2020-2021"]*10
             result_df_LCC["LCC2021_2022_m2"] = result_df_LCC["LCC 2021-2022"]*10
             result_df_LCC.to_csv(f'{data_model_output}/Part_2/{id_key}_result_df.csv', index=False)
-        
+
         except Exception as e:
             logging.error(f"Error in change detection for {id_key}: {e}")
             continue
@@ -306,23 +300,23 @@ def plot_LCC_area(id_key: str, result_df: pd.DataFrame) -> None:
     cols_to_plot = ["LC2020_m2", "LC2021_m2", "LC2022_m2"]
 
     # Reshape the dataframe from wide to long format
-    melted_df = pd.melt(result_df, id_vars=['LCC', 'cover_class'], 
-                        value_vars=cols_to_plot, 
-                        var_name='category', 
+    melted_df = pd.melt(result_df, id_vars=['LCC', 'cover_class'],
+                        value_vars=cols_to_plot,
+                        var_name='category',
                         value_name='value')
 
     melted_df['value'] = pd.to_numeric(melted_df['value'], errors='coerce')
-    
+
     # Replace NaN with 0 for plotting
     melted_df = melted_df.dropna(subset=['value'])
 
     # Plot scatterplot
     sns.set_style("darkgrid", {"axes.facecolor": ".9"})
     fig, ax = plt.subplots(figsize=(12, 8))
-    
+
     # Create scatter plot with fixed x-axis
     scatter = sns.scatterplot(data=melted_df, x='category', y='value', hue='cover_class', style='cover_class', s=100)
-    
+
     # Set x-axis labels correctly
     plt.xticks(range(len(cols_to_plot)), ["Land Cover 2020", "Land Cover 2021", "Land Cover 2022"], rotation=45, ha="right")
     plt.ylabel("Area (m\u00B2)")
@@ -365,7 +359,7 @@ def main():
         filename = Path(df_path).stem  # gets 'id_1_result_df'
         id_num = filename.split('_')[1]  # gets '1'
         id_key = f"id_{id_num}"
-        
+
         result_df = pd.read_csv(df_path, sep=',', na_values=[''], keep_default_na=True)
         plot_LCC_area(id_key, result_df)
 
@@ -391,7 +385,7 @@ def main():
             return ':'.join(class_dict.get(part, 'Unknown') for part in parts)
         else:
             return 'Unknown'
-    
+
     final_df['cover_class'] = final_df['LCC'].apply(lambda x: map_cover_class(x, class_dict))
 
     out_dir = Path(f'{data_model_output}/Part_2/Concat')
