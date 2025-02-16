@@ -1,7 +1,7 @@
 ##############################
 #Part 2: LCC Batch Processing#
 #Maintainer: Christopher Chan#
-#Version: 0.1.7              #
+#Version: 0.1.8              #
 #Date: 2025-02-14            #
 ##############################
 
@@ -21,6 +21,7 @@ import seaborn as sns
 from matplotlib.colors import BoundaryNorm, ListedColormap
 from osgeo import gdal
 from rasterio.mask import mask
+from tqdm import tqdm
 
 # path setup
 BASE_PATH = Path(__file__).parent
@@ -91,7 +92,7 @@ def batch_clip(raster_list: List[str], vector_list: List[tuple[gpd.GeoDataFrame,
         print(f"Processing raster: {raster}")
         year = raster.split('_')[2].split('.')[0]
 
-        for gdf, vector_path in vector_list:
+        for gdf, vector_path in tqdm(vector_list):
             print(f"Clipping with vector: {vector_path}")
 
             # Reproject
@@ -202,7 +203,7 @@ def change_detection(raster_dict: dict) -> None:
     out_dir_result = Path(f'{data_model_output}/Part_2')
     out_dir_result.mkdir(parents=True, exist_ok=True)
 
-    for i in range(1, 13):
+    for i in tqdm(range(1, 13)):
         id_key = f"id_{i}"
         if id_key not in raster_dict:
             continue
@@ -231,6 +232,7 @@ def change_detection(raster_dict: dict) -> None:
                     )
 
             # Create change detection arrays
+            print(f"Processing Change Detection for {id_key}")
             LCC2020_2021 = np.char.add(padded_images["2020"].astype(str), padded_images["2021"].astype(str)).astype(np.float16)
             LCC2021_2022 = np.char.add(padded_images["2021"].astype(str), padded_images["2022"].astype(str)).astype(np.float16)
 
