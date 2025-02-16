@@ -93,7 +93,7 @@ def batch_clip(raster_list: List[str], vector_list: List[tuple[gpd.GeoDataFrame,
         year = raster.split('_')[2].split('.')[0]
 
         for gdf, vector_path in tqdm(vector_list):
-            print(f"Clipping with vector: {vector_path}")
+            tqdm.write(f"Clipping with vector: {vector_path}")
 
             # Reproject
             if gdf.crs != 'EPSG:32630':
@@ -119,7 +119,7 @@ def batch_clip(raster_list: List[str], vector_list: List[tuple[gpd.GeoDataFrame,
                     })
 
                     with rio.open(f'{data_intermediate}/raster/Part_2/{id}_{year}.tif', 'w', **profile) as dst:
-                        print(f"Saving to: {data_intermediate}/raster/Part_2/{id}_{year}.tif")
+                        tqdm.write(f"Saving to: {data_intermediate}/raster/Part_2/{id}_{year}.tif")
                         dst.write(clipped_image)
 
                     # Initialize dictionary entry for this ID if it doesn't exist
@@ -232,7 +232,7 @@ def change_detection(raster_dict: dict) -> None:
                     )
 
             # Create change detection arrays
-            print(f"Processing Change Detection for {id_key}")
+            tqdm.write(f"Processing Change Detection for {id_key}")
             LCC2020_2021 = np.char.add(padded_images["2020"].astype(str), padded_images["2021"].astype(str)).astype(np.float16)
             LCC2021_2022 = np.char.add(padded_images["2021"].astype(str), padded_images["2022"].astype(str)).astype(np.float16)
 
