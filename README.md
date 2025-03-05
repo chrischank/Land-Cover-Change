@@ -1,4 +1,4 @@
-# natcap_interview
+# Land Cover Change analysis
 
 [![Powered by Kedro](https://img.shields.io/badge/powered_by-kedro-ffc900?logo=kedro)](https://kedro.org)
 
