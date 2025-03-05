@@ -3,8 +3,7 @@
 [![Powered by Kedro](https://img.shields.io/badge/powered_by-kedro-ffc900?logo=kedro)](https://kedro.org)
 
 ## Overview
-
-This is an interview assignment for NatCap Senior Scientist. The project has been generated using Kedro (version 0.19.11) and has Kedro-Viz set up by default.
+This is a Land Cover Change analysis exercise. The project has been generated using Kedro (version 0.19.11) and has Kedro-Viz set up by default.
 
 Some key features and folders to note:
 
